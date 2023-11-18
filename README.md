@@ -133,4 +133,168 @@ subnet 192.222.4.0 netmask 255.255.255.0 {
     max-lease-time 5760;
 }
 ```
+Install package dhcp relay pada router dengan command 
+```
+apt-get install isc-dhcp-relay
+```
 
+Konfigurasi pada default menuju untuk server di isikan dengan ip dns server dan interfaces diisi dengan interface tujuan
+```
+SERVER="192.222.1.3"
+INTERFACES="eth1 eth2 eth3 eth4"
+```
+Terakhir tambahkan pada  `/etc/sysctl.conf`
+
+```
+net.ipv4.ip_forward=1
+```
+
+dan kemudian restart dhcp relay untuk mengaktifkan konfigurasi yang telah dibuat
+
+#### 4. Client mendapatkan DNS dari Heiter dan dapat terhubung dengan internet melalui DNS tersebut
+Testing dicek pada client dengan melihat `etc/resolv.conf` dan ip a 
+
+#### 5. Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch3 selama 3 menit sedangkan pada client yang melalui Switch4 selama 12 menit. Dengan waktu maksimal dialokasikan untuk peminjaman alamat IP selama 96 menit
+
+Untuk pengaturan lama dari masa kadaluarsa dari ip telah kita atur pada dhcp server pada bagian pengaturan subnet. baris default-lease-time untuk peminjaman dan max-lease-time waktu maksimal
+
+#### 6. Pada masing-masing worker PHP, lakukan konfigurasi virtual host untuk website berikut dengan menggunakan php 7.3.
+Pengerjaan pembuatan worker PHP dengan melakukan langkah-langkah berikut:
+- Melakukan instalasi nginx pada worker php
+
+```
+apt-get update
+apt-get install nginx -y
+apt-get install php -y
+apt-get install php-fpm -y
+
+```
+- Setelah semua keperluan siap, unduh file zip yang telah disediakan soal dengan wget dan extract hasil unduhan.
+- Hapus file yang telah diekstrak untuk menghemat penyimpanan dan ganti nama file hasil ekstrak dengan arjuna.f02.com
+- Buat file konfigurasi pada `/etc/nginx/sites-available` dengan nama arjuna yang berisi seperti berikut:
+```
+'server {
+
+	listen 800x;
+
+	root /var/www/granz.channel.f02.com;
+
+	index index.php index.html index.htm;
+	server_name _;
+
+	location / {
+			try_files $uri $uri/ /index.php?$query_string;
+	}
+
+	# pass PHP scripts to FastCGI server
+	location ~ \.php$ {
+	include snippets/fastcgi-php.conf;
+	fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+	}
+
+location ~ /\.ht {
+			deny all;
+	}
+
+	error_log /var/log/nginx/arjuna_error.log;
+	access_log /var/log/nginx/arjuna_access.log;
+}
+```
+- Port yang digunakan urut dari 8001-8003
+- Nyalakan service dari php-fpm dengan `service php7.2-fpm start`
+- buat symlink dengan command `ln -s /etc/nginx/sites-available/arjuna /etc/nginx/sites-enabled`
+- restart nginx dan jalankan dengan command
+```
+service nginx restart
+nginx -t
+```
+
+#### 7 Kepala suku dari Bredt Region memberikan resource server sebagai berikut: Lawine, 4GB, 2vCPU, dan 80 GB SSD.Linie, 2GB, 2vCPU, dan 50 GB SSD.Lugner 1GB, 1vCPU, dan 25 GB SSD. aturlah agar Eisen dapat bekerja dengan maksimal, lalu lakukan testing dengan 1000 request dan 100 request/second.
+
+Pengujian menggunakan apache benchmark dengan instalasi apache2-utlis
+``` 
+apt-get install apache2-utils
+```
+Uji coba menggunakan command berikut
+```
+ab -n 1000 -c 100 http://www.granz.channel.d22.com/
+```
+#### 8 Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:
+a. Nama Algoritma Load Balancer
+b. Report hasil testing pada Apache Benchmark
+c. Grafik request per second untuk masing masing algoritma.
+d. Analisis
+
+Round Robin
+```
+upstream myweb  {
+        server 192.222.3.4:8001; #IP Lawine
+        server 192.222.3.5:8002; #IP Linie
+        server 192.222.3.6:8003; #IP Lugner
+}
+
+```
+
+
+Lease Connection
+```
+#least connection
+upstream myweb {
+       least_conn;
+       server 192.222.3.4:8001;
+       server 192.222.3.5:8002;
+       server 192.222.3.6:8003;
+}
+```
+IP Hash
+```
+#upstream myweb {
+       ip_hash;
+       server 192.222.3.4:8001;
+       server 192.222.3.5:8002;
+        server 192.222.3.6:8003;
+}
+```
+
+Generic Hash
+```
+#generichash
+upstream myweb {
+       hash $request_uri consistent;
+       server 192.202.3.4:8001;
+       server 192.202.3.5:8002;
+       server 192.202.3.6:8003;
+}
+```
+Uji coba menggunakan command berikut
+```
+ab -n 200 -c 10 http://www.granz.channel.d22.com/
+```
+
+#### 9 Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire
+
+Uji coba menggunakan command berikut
+```
+ab -n 100 -c 10 http://www.granz.channel.d22.com/
+```
+Dengan mengatur setiap uji coba dengan memberikan comment pada pada beberapa worker untuk penggunaan 3 worker, 2worker dan 1 worker
+
+#### 10 Selanjutnya coba tambahkan konfigurasi autentikasi di LB dengan dengan kombinasi username: “netics” dan password: “ajkyyy”, dengan yyy merupakan kode kelompok. Terakhir simpan file “htpasswd” nya di /etc/nginx/rahasisakita/
+
+Membuat folder untuk menyimpan user dan password
+```
+mkdir /etc/nginx/rahasisakita
+apt-get install apache2-utils
+htpasswd -c -b /etc/nginx/rahasisakita/htpasswd netics ajkf02
+```
+Tambahkan pada pengaturan load balancer 
+
+```
+location / {
+ 	    proxy_pass http://backend;
+      auth_basic \"Autitenikasi\";
+      auth_basic_user_file /etc/nginx/rahasisakita/htpasswd;
+}
+```
+
+#### 11 Lalu buat untuk setiap request yang mengandung /its akan di proxy passing menuju halaman https://www.its.ac.id

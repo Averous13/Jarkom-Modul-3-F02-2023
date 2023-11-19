@@ -298,3 +298,34 @@ location / {
 ```
 
 #### 11 Lalu buat untuk setiap request yang mengandung /its akan di proxy passing menuju halaman https://www.its.ac.id
+
+Tambahkan konfigurasi berikut pada `etc/nginx/sites-available/granz`
+
+```
+location ~ /its {
+    proxy_pass https://www.its.ac.id;
+}
+```
+
+Testing menggunakan
+```
+lynx granz.channel.f02.com
+```
+
+#### 12 Selanjutnya LB ini hanya boleh diakses oleh client dengan IP [Prefix IP].3.69, [Prefix IP].3.70, [Prefix IP].4.167, dan [Prefix IP].4.168
+
+Tambahkan konfigurasi berikut pada `etc/nginx/sites-available/granz`
+
+```
+location / {
+        allow 192.202.3.69;
+        allow 192.202.3.70;
+        allow 192.202.4.167;
+        allow 192.202.4.168;
+        deny all;
+	 	    proxy_pass http://backend;
+        auth_basic \"Autitentikasi\";
+        auth_basic_user_file /etc/nginx/rahasisakita/htpasswd;
+```
+
+ 	}
